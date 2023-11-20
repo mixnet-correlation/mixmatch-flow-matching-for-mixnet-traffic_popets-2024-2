@@ -63,7 +63,7 @@ In case you want to collect raw data yourself (instead of relying on above-liste
 
 ### Setting Up
 
-Execute the following steps as user `root` on a Ubuntu 22.04 machine `ubuntu2204` with at least moderate hardware capabilities (we recommend at least 8 CPU cores, 16 GB RAM, 80 GB free disk space). Mind that the scripts below will install some Ubuntu packages as well as Miniconda and a Miniconda-based Python environment with the packages we need. If you don't want this to happen to your current machine, please make sure to run this in a virtual machine or ephemeral cloud instance.
+Execute the following steps as user `root` on a Ubuntu 22.04 machine `ubuntu2204` equipped with the above mentioned hardware capabilities (CPU cores, RAM size, GPU available) and at least 100 GB of free disk space. Mind that the scripts below will install some Ubuntu packages as well as Miniconda and a Miniconda-based Python environment with the packages we need. If you don't want this to happen to your current machine, please make sure to run this in a virtual machine or ephemeral cloud instance.
 ```bash
 root@ubuntu2204 $   mkdir -p ~/mixmatch
 root@ubuntu2204 $   cd ~/mixmatch
@@ -161,11 +161,11 @@ root@ubuntu2204(mixmatch) $   git clone https://github.com/mixnet-correlation/da
 
 **Side note:** Training the DL models drift and shape can be very time-consuming and resource-intense. In case you'd like to use pretrained models to skip over below training steps for the deep learning classifiers and run the evaluation steps directly, please feel free to use the pretrained models provided in subfolder [`./2_pretrained_deeplearning_models`](./2_pretrained_deeplearning_models) in the appropriate places instead.
 
-The following list of commands will take you through one end-to-end analysis cycle of parsing, training, evaluating, and calculating scores for one dataset with our drift classifier, exemplarily for dataset `baseline`. **Please mind that the full process from first to last command takes multiple days and requires powerful hardware (see section above).**
+The following list of commands will take you through one end-to-end analysis cycle of parsing, training, evaluating, and calculating scores for one dataset with our drift classifier, exemplarily for dataset `baseline`. **Please mind that the full process from first to last command takes on the order of days to complete and requires powerful hardware (see section above).**
 ```bash
 root@ubuntu2204(base) $   conda activate mixmatch
-root@ubuntu2204(mixmatch) $   cd ~/mixmatch/deeplearning/mixmatch_drift_classifier
 root@ubuntu2204(mixmatch) $   tmux
+root@ubuntu2204(mixmatch) $   cd ~/mixmatch/deeplearning/mixmatch_drift_classifier
 root@ubuntu2204(mixmatch) $   python parse.py ../datasets/baseline --delaymatpath ../delay_matrices/baseline --experiment 1
 ... Takes at least 20min to complete ...
 root@ubuntu2204(mixmatch) $   TF_CPP_MIN_LOG_LEVEL=3 TF_DETERMINISTIC_OPS=1 PYTHONHASHSEED=0 python train.py
@@ -176,11 +176,28 @@ root@ubuntu2204(mixmatch) $   TF_CPP_MIN_LOG_LEVEL=3 TF_DETERMINISTIC_OPS=1 PYTH
 ... Takes on the order of 1 hour to complete ...
 ```
 
+When running the deep learning classifiers on multiple datasets, we recommend to name data and results folders within `~/mixmatch/deeplearning/mixmatch_drift_classifier` explicitely after their respective experiment/dataset/purpose.
+
+For the special case of the `two-to-one` experiment that is based on the `baseline` dataset, we start from the `baseline`-trained model and instruct the model at inference time to build and analyze the `two-to-one` dataset ad-hoc in the following way:
+```bash
+root@ubuntu2204(base) $   conda activate mixmatch
+root@ubuntu2204(mixmatch) $   tmux
+root@ubuntu2204(mixmatch) $   cd ~/mixmatch/deeplearning/mixmatch_drift_classifier
+root@ubuntu2204(mixmatch) $   TF_CPP_MIN_LOG_LEVEL=3 TF_DETERMINISTIC_OPS=1 PYTHONHASHSEED=0 python get_scores.py ./data/A_BASELINE_DATA_FOLDER/ ./results/A_BASELINE_RESULTS_FOLDER/ --two2one_case1   # Semi-matched case
+... Takes on the order of some hours to complete ...
+root@ubuntu2204(mixmatch) $   TF_CPP_MIN_LOG_LEVEL=3 TF_DETERMINISTIC_OPS=1 PYTHONHASHSEED=0 python calculate_roc.py ./results/A_BASELINE_RESULTS_FOLDER/ --two2one
+... Takes on the order of 1 hour to complete ...
+root@ubuntu2204(mixmatch) $   TF_CPP_MIN_LOG_LEVEL=3 TF_DETERMINISTIC_OPS=1 PYTHONHASHSEED=0 python get_scores.py ./data/A_BASELINE_DATA_FOLDER/ ./results/A_BASELINE_RESULTS_FOLDER/ --two2one_case2   # Unmatched case
+... Takes on the order of some hours to complete ...
+root@ubuntu2204(mixmatch) $   TF_CPP_MIN_LOG_LEVEL=3 TF_DETERMINISTIC_OPS=1 PYTHONHASHSEED=0 python calculate_roc.py ./results/A_BASELINE_RESULTS_FOLDER/ --two2one
+... Takes on the order of 1 hour to complete ...
+```
+
 For dataset `baseline` and our shape classifier, run:
 ```bash
 root@ubuntu2204(base) $   conda activate mixmatch
-root@ubuntu2204(mixmatch) $   cd ~/mixmatch/deeplearning/mixmatch_shape_classifier
 root@ubuntu2204(mixmatch) $   tmux
+root@ubuntu2204(mixmatch) $   cd ~/mixmatch/deeplearning/mixmatch_shape_classifier
 root@ubuntu2204(mixmatch) $   ln -s ~/mixmatch/deeplearning/delay_matrices/baseline/test_delay_matrix.npz ~/mixmatch/deeplearning/datasets/baseline/test_delay_matrix.npz
 root@ubuntu2204(mixmatch) $   ln -s ~/mixmatch/deeplearning/delay_matrices/baseline/train_delay_matrix.npz ~/mixmatch/deeplearning/datasets/baseline/train_delay_matrix.npz
 root@ubuntu2204(mixmatch) $   ln -s ~/mixmatch/deeplearning/delay_matrices/baseline/val_delay_matrix.npz ~/mixmatch/deeplearning/datasets/baseline/val_delay_matrix.npz
@@ -197,16 +214,35 @@ root@ubuntu2204(mixmatch) $   rm ~/mixmatch/deeplearning/datasets/baseline/train
 root@ubuntu2204(mixmatch) $   rm ~/mixmatch/deeplearning/datasets/baseline/val_delay_matrix.npz
 ```
 
-Evaluating our statistical classifier on dataset `baseline` needs fewer steps as we aren't training a neural network. Run:
+Evaluating our statistical classifier on dataset `baseline` requires the following commands:
 ```bash
 root@ubuntu2204(base) $   conda activate mixmatch
+root@ubuntu2204(mixmatch) $   tmux
 root@ubuntu2204(mixmatch) $   cd ~/mixmatch/statistical
 root@ubuntu2204(mixmatch) $   mkdir -p ~/mixmatch/statistical/results/logs
 root@ubuntu2204(mixmatch) $   cd ~/mixmatch/statistical/mixmatch_statistical_classifier
 root@ubuntu2204(mixmatch) $   printf "~/mixmatch/statistical/results\n" > ~/mixmatch/statistical/mixmatch_statistical_classifier/MIXCORR_DATA_PATH.txt
-root@ubuntu2204(mixmatch) $   printf "~/mixmatch/statistical/datasets\n" > ~/mixmatch/statistical/mixmatch_statistical_classifier/DATABASES_PATH.txth
+root@ubuntu2204(mixmatch) $   printf "~/mixmatch/statistical/datasets\n" > ~/mixmatch/statistical/mixmatch_statistical_classifier/DATABASES_PATH.txt
+root@ubuntu2204(mixmatch) $   python real_data_experiment_parser.py
+root@ubuntu2204(mixmatch) $   ./transform_flow_pair_lists.tcsh
+root@ubuntu2204(mixmatch) $   ./perform_experiment_real_data_alt_delay_characteristic.tcsh
+... Takes on the order of days to complete ...
+root@ubuntu2204(mixmatch) $   octave
+octave:1> process_real_data_alt_delay_characteristic_experiment_results("../results", "baseline", 23)
+... Takes some time to complete ...
+octave:1> exit
 ```
-Please follow the documentation in [`mixnet-correlation/mixmatch_statistical_classifier`](https://github.com/mixnet-correlation/mixmatch_statistical_classifier) for necessary adjustments and the next steps to run the statistical classifier.
+
+For the special case of the `two-to-one` experiment, replace the step of running `./perform_experiment_real_data_alt_delay_characteristic.tcsh` above with the following two commands:
+```bash
+root@ubuntu2204(base) $   conda activate mixmatch
+root@ubuntu2204(mixmatch) $   tmux
+root@ubuntu2204(mixmatch) $   cd ~/mixmatch/statistical/mixmatch_statistical_classifier
+root@ubuntu2204(mixmatch) $   ./perform_experiment_real_data_alt_delay_characteristic_3parties_unmatched_negatives.tcsh
+... Takes on the order of days to complete ...
+root@ubuntu2204(mixmatch) $   ./perform_experiment_real_data_alt_delay_characteristic_3parties_semimatched_negatives.tcsh
+... Takes on the order of days to complete ...
+```
 
 
 ### Level Three: Collect Raw Datasets Yourself
