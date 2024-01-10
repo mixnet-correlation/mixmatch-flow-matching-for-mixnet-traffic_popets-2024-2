@@ -10,7 +10,7 @@ mkdir -p ~/mixmatch/deeplearning/delay_matrices
 
 # Download zip file containing the delay matrices for `baseline`, `no-cover`, `low-delay`, `high-delay`, and `live-nym`.
 # Mind: The downloaded zip file takes up 4.8 GB of disk space.
-wget https://files.de-1.osf.io/v1/resources/m9gbz/providers/osfstorage/65155d20333aef0363d7034f/?zip= -O ~/mixmatch/deeplearning/delay_matrices/osf_delay_matrices.zip
+wget 'https://files.de-1.osf.io/v1/resources/m9gbz/providers/osfstorage/65155d20333aef0363d7034f/?zip=' -O ~/mixmatch/deeplearning/delay_matrices/osf_delay_matrices.zip
 
 # Unzip the archive.
 cd ~/mixmatch/deeplearning/delay_matrices

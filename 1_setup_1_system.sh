@@ -14,7 +14,7 @@ DEBIAN_FRONTEND=noninteractive apt-get clean --yes
 
 # Download "Fira Sans Condensed" font.
 mkdir -p /usr/share/fonts/truetype/firasanscondensed
-wget https://github.com/google/fonts/raw/main/ofl/firasanscondensed/FiraSansCondensed-Regular.ttf -O /usr/share/fonts/truetype/firasanscondensed/FiraSansCondensed-Regular.ttf
-wget https://github.com/google/fonts/raw/main/ofl/firasanscondensed/FiraSansCondensed-Italic.ttf -O /usr/share/fonts/truetype/firasanscondensed/FiraSansCondensed-Italic.ttf
+wget 'https://github.com/google/fonts/raw/837b031eab5cd82dae5da4fd2f0f0acb2437b8b0/ofl/firasanscondensed/FiraSansCondensed-Regular.ttf' -O /usr/share/fonts/truetype/firasanscondensed/FiraSansCondensed-Regular.ttf
+wget 'https://github.com/google/fonts/raw/837b031eab5cd82dae5da4fd2f0f0acb2437b8b0/ofl/firasanscondensed/FiraSansCondensed-Italic.ttf' -O /usr/share/fonts/truetype/firasanscondensed/FiraSansCondensed-Italic.ttf
 rm -rf ~/.cache/matplotlib/fontlist-v330.json
 fc-cache -rfv
