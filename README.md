@@ -4,6 +4,8 @@ Main repository for our PoPETs 2024.2 article "MixMatch: Flow Matching for Mixne
 
 Authors: [Lennart Oldenburg](https://lennartoldenburg.de/), [Marc Juarez](https://mjuarezm.github.io/), [Enrique Argones Rúa](https://www.esat.kuleuven.be/cosic/people/enrique-argones-rua/), [Claudia Diaz](https://homes.esat.kuleuven.be/~cdiaz/)
 
+[Link to article PDF](https://cosicdatabase.esat.kuleuven.be/files/public/publications/journal/3800).
+
 
 ## Abstract
 
