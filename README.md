@@ -183,8 +183,8 @@ root@ubuntu2204(mixmatch) $   git clone https://github.com/mixnet-correlation/da
 
 The following list of commands will take you through one end-to-end analysis cycle of parsing, training, evaluating, and calculating scores for one dataset with our drift classifier, exemplarily for dataset `baseline`. **Please mind that the full process from first to last command takes on the order of days to complete and requires powerful hardware (see [section above](#hardware-considerations)).**
 ```bash
+root@ubuntu2204(base) $   tmux
 root@ubuntu2204(base) $   conda activate mixmatch
-root@ubuntu2204(mixmatch) $   tmux
 root@ubuntu2204(mixmatch) $   cd ~/mixmatch/deeplearning/mixmatch_drift_classifier
 root@ubuntu2204(mixmatch) $   python parse.py ../datasets/baseline --delaymatpath ../delay_matrices/baseline --experiment 1
 ... Takes at least 20min to complete ...
@@ -198,10 +198,12 @@ root@ubuntu2204(mixmatch) $   TF_CPP_MIN_LOG_LEVEL=3 TF_DETERMINISTIC_OPS=1 PYTH
 
 When running the deep learning classifiers on multiple datasets, we recommend to name data and results folders within `~/mixmatch/deeplearning/mixmatch_drift_classifier` explicitly after their respective experiment/dataset/purpose.
 
+Once you have completed the step of running `calculate_roc.py` for one of our deep learning classifiers, file `step_results.csv` in the respective results folder contains all obtained data needed to plot the experiment's ROC figure. The ROC data files starting with `subsampled_` that we provide [for reproducing at level 1 above](#level-one-reproduce-the-figures) are filtered versions of this `step_results.csv` file and very specific to our figures. By appropriately filtering `step_results.csv` into ROC data files with a specific number of samples or of a specific packet type, you can arrive at the ROC data files relevant to the figure you are interested in for plotting.
+
 For the special case of the `two-to-one` experiment that is based on the `baseline` dataset, we start from the `baseline`-trained model and instruct the model at inference time to build and analyze the `two-to-one` dataset ad-hoc in the following way:
 ```bash
+root@ubuntu2204(base) $   tmux
 root@ubuntu2204(base) $   conda activate mixmatch
-root@ubuntu2204(mixmatch) $   tmux
 root@ubuntu2204(mixmatch) $   cd ~/mixmatch/deeplearning/mixmatch_drift_classifier
 root@ubuntu2204(mixmatch) $   TF_CPP_MIN_LOG_LEVEL=3 TF_DETERMINISTIC_OPS=1 PYTHONHASHSEED=0 python get_scores.py ./data/A_BASELINE_DATA_FOLDER/ ./results/A_BASELINE_RESULTS_FOLDER/ --two2one_case1   # Semi-matched case
 ... Takes on the order of some hours to complete ...
@@ -215,8 +217,8 @@ root@ubuntu2204(mixmatch) $   TF_CPP_MIN_LOG_LEVEL=3 TF_DETERMINISTIC_OPS=1 PYTH
 
 For dataset `baseline` and our shape classifier, run:
 ```bash
+root@ubuntu2204(base) $   tmux
 root@ubuntu2204(base) $   conda activate mixmatch
-root@ubuntu2204(mixmatch) $   tmux
 root@ubuntu2204(mixmatch) $   cd ~/mixmatch/deeplearning/mixmatch_shape_classifier
 root@ubuntu2204(mixmatch) $   ln -s ~/mixmatch/deeplearning/delay_matrices/baseline/test_delay_matrix.npz ~/mixmatch/deeplearning/datasets/baseline/test_delay_matrix.npz
 root@ubuntu2204(mixmatch) $   ln -s ~/mixmatch/deeplearning/delay_matrices/baseline/train_delay_matrix.npz ~/mixmatch/deeplearning/datasets/baseline/train_delay_matrix.npz
@@ -236,9 +238,14 @@ root@ubuntu2204(mixmatch) $   rm ~/mixmatch/deeplearning/datasets/baseline/val_d
 
 Evaluating our statistical classifier on dataset `baseline` requires the following commands:
 ```bash
+root@ubuntu2204(base) $   tmux
 root@ubuntu2204(base) $   conda activate mixmatch
-root@ubuntu2204(mixmatch) $   tmux
-root@ubuntu2204(mixmatch) $   cd ~/mixmatch/statistical
+root@ubuntu2204(mixmatch) $   mkdir -p ~/mixmatch/statistical/octave-packages
+root@ubuntu2204(mixmatch) $   wget 'https://www.nist.gov/document/detwarev2-1-targz' -O ~/mixmatch/statistical/octave-packages/detware.tar.gz
+root@ubuntu2204(mixmatch) $   cd ~/mixmatch/statistical/octave-packages
+root@ubuntu2204(mixmatch) $   tar xvfz detware.tar.gz && rm -rf detware.tar.gz
+root@ubuntu2204(mixmatch) $   chmod 0755 DETware_v2.1 && chown -R root:root DETware_v2.1 && chmod 0440 DETware_v2.1/*
+root@ubuntu2204(mixmatch) $   printf "  addpath ('/root/mixmatch/statistical/octave-packages/DETware_v2.1', '-begin');\n" >> ~/.octaverc
 root@ubuntu2204(mixmatch) $   mkdir -p ~/mixmatch/statistical/results/{logs,baseline,no-cover,low-delay,high-delay,two-to-one,live-nym}
 root@ubuntu2204(mixmatch) $   cd ~/mixmatch/statistical/mixmatch_statistical_classifier
 root@ubuntu2204(mixmatch) $   printf "~/mixmatch/statistical/results\n" > ~/mixmatch/statistical/mixmatch_statistical_classifier/MIXCORR_DATA_PATH.txt
@@ -255,13 +262,13 @@ octave:1> exit
 
 For the special case of the `two-to-one` experiment, replace the step of running `./perform_experiment_real_data_alt_delay_characteristic.tcsh` above with the following two commands:
 ```bash
+root@ubuntu2204(base) $   tmux
 root@ubuntu2204(base) $   conda activate mixmatch
-root@ubuntu2204(mixmatch) $   tmux
 root@ubuntu2204(mixmatch) $   cd ~/mixmatch/statistical/mixmatch_statistical_classifier
 root@ubuntu2204(mixmatch) $   ./perform_experiment_real_data_alt_delay_characteristic_3parties_unmatched_negatives.tcsh
-... Takes on the order of days to complete ...
+... Script returns immediately, but launches background tasks that take on the order of days to complete ...
 root@ubuntu2204(mixmatch) $   ./perform_experiment_real_data_alt_delay_characteristic_3parties_semimatched_negatives.tcsh
-... Takes on the order of days to complete ...
+... Script returns immediately, but launches background tasks that take on the order of days to complete ...
 ```
 
 
